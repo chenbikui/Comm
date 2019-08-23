@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "Comm.h"
 #include "CommDlg.h"
+#include "HidDevice.h"
 
 
 #ifdef _DEBUG
@@ -66,6 +67,7 @@ BEGIN_MESSAGE_MAP(CCommDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_NO_BLOCK, &CCommDlg::OnBnClickedButtonNoBlock)
 	ON_MESSAGE(WM_COMM_RXCHAR,GetCommData)
 	ON_BN_CLICKED(IDC_BUTTON_BLOCK, &CCommDlg::OnBnClickedButtonBlock)
+	ON_BN_CLICKED(IDC_BUTTON_USB, &CCommDlg::OnBnClickedButtonUsb)
 END_MESSAGE_MAP()
 
 
@@ -352,4 +354,51 @@ void CCommDlg::OnBnClickedButtonBlock()
 
 	m_comPort.ClosePort();
 	AfxMessageBox(strShow);
+}
+
+
+void CCommDlg::OnBnClickedButtonUsb()
+{
+	HidDevice hidusb;
+
+	//hidusb.GetComPortByVidPid(_T("VID_067B&PID_2303"));//USB\VID_067B&PID_2303&REV_0300
+	//hidusb.GetComPortByVidPid(_T("VID_3412&PID_1111"));//HID\VID_3412&PID_1111&REV_0000
+
+	TCHAR devPath[MAX_PATH] = {0};
+
+	BOOL bRet = hidusb.FindUSBDevice(_T("3412"),_T("1111"), devPath, MAX_PATH);
+	if (!bRet)
+	{
+		return;
+	}
+
+	if (!hidusb.OpenUSBDevice(devPath))
+	{
+		return;
+	}
+
+	BYTE buf[65] = {0x00,0x02,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x3b,0x8c,0x00,0x37,
+		0x39,0x44,0x39,0x41,0x41,0x35,0x33,0x00,0x00,0x9e,
+		0xc7,0xf0,0x1a,0x43,0x6c,0x96,0xbf,0xe8,0x12,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x78,
+		0x5a,0x37,0xd8,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00};
+
+	int ret = 0;
+	ret = hidusb.UsbDeviceWrite(buf, 65);
+
+	if (ret > 0)
+	{
+		Sleep(200);
+		memset(buf, 0, 65);
+		ret = hidusb.UsbDeviceRead(buf, 65);
+		if (ret > 0)
+		{
+		}
+	}
+
+	hidusb.CloseUSBDevice();
+	return;
 }

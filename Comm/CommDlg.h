@@ -36,4 +36,5 @@ public:
 	afx_msg void OnBnClickedButtonNoBlock();
 	afx_msg LRESULT GetCommData(WPARAM wParam,LPARAM lParam);
 	afx_msg void OnBnClickedButtonBlock();
+	afx_msg void OnBnClickedButtonUsb();
 };
